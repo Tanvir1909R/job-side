@@ -2,7 +2,12 @@ import React from "react";
 
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
+import { useParams } from "react-router-dom";
+import { useGetJobsByIdQuery } from "../app/features/apis/jobApi";
+import Loading from "../components/reusable/Loading";
 const JobDetails = () => {
+  const {id} = useParams()
+  const { data, isLoading} = useGetJobsByIdQuery(id) 
   const {
     companyName,
     position,
@@ -15,9 +20,17 @@ const JobDetails = () => {
     requirements,
     responsibilities,
     overview,
-    queries,
-    _id,
-  } = {};
+    queries
+  } = data?.data || {};
+
+  const handleApply = ()=>{
+    const data = {}
+    console.log(data);
+  }
+
+  if(isLoading){
+    return <Loading/>
+  }
 
   return (
     <div className='pt-14 grid grid-cols-12 gap-5'>
@@ -28,7 +41,7 @@ const JobDetails = () => {
         <div className='space-y-5'>
           <div className='flex justify-between items-center mt-5'>
             <h1 className='text-xl font-semibold text-primary'>{position}</h1>
-            <button className='btn'>Apply</button>
+            <button onClick={handleApply} className='btn'>Apply</button>
           </div>
           <div>
             <h1 className='text-primary text-lg font-medium mb-3'>Overview</h1>
@@ -37,8 +50,8 @@ const JobDetails = () => {
           <div>
             <h1 className='text-primary text-lg font-medium mb-3'>Skills</h1>
             <ul>
-              {skills.map((skill) => (
-                <li className='flex items-center'>
+              {skills?.map((skill,_) => (
+                <li key={_} className='flex items-center'>
                   <BsArrowRightShort /> <span>{skill}</span>
                 </li>
               ))}
@@ -49,8 +62,8 @@ const JobDetails = () => {
               Requirements
             </h1>
             <ul>
-              {requirements.map((skill) => (
-                <li className='flex items-center'>
+              {requirements?.map((skill,_) => (
+                <li key={_} className='flex items-center'>
                   <BsArrowRightShort /> <span>{skill}</span>
                 </li>
               ))}
@@ -61,8 +74,8 @@ const JobDetails = () => {
               Responsibilities
             </h1>
             <ul>
-              {responsibilities.map((skill) => (
-                <li className='flex items-center'>
+              {responsibilities?.map((skill,_) => (
+                <li key={_} className='flex items-center'>
                   <BsArrowRightShort /> <span>{skill}</span>
                 </li>
               ))}
@@ -76,12 +89,12 @@ const JobDetails = () => {
               General Q&A
             </h1>
             <div className='text-primary my-2'>
-              {queries.map(({ question, email, reply, id }) => (
-                <div>
+              {queries?.map(({ question, email, reply, id }) => (
+                <div key={id}>
                   <small>{email}</small>
                   <p className='text-lg font-medium'>{question}</p>
-                  {reply?.map((item) => (
-                    <p className='flex items-center gap-2 relative left-5'>
+                  {reply?.map((item,_) => (
+                    <p key={_} className='flex items-center gap-2 relative left-5'>
                       <BsArrowReturnRight /> {item}
                     </p>
                   ))}
@@ -160,7 +173,7 @@ const JobDetails = () => {
           </div>
           <div>
             <p>Website</p>
-            <a className='font-semibold text-lg' href='#'>
+            <a className='font-semibold text-lg' href='/'>
               https://website.com
             </a>
           </div>
