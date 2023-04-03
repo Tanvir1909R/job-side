@@ -13,6 +13,7 @@ const Login = () => {
 
   const onSubmit = (data) => {
     dispatch(loginAuth({email:data.email, password: data.password}))
+    reset()
   };
 
   useEffect(()=>{

@@ -28,6 +28,7 @@ const Signup = () => {
 
   const onSubmit = (data) => {
     dispatch(createAuth({email:data.email, password:data.password}))
+    reset()
   };
 
   return (

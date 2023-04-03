@@ -3,9 +3,9 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 const apiSlice = createApi({
     reducerPath:"api",
     baseQuery: fetchBaseQuery({
-        baseUrl:"http://localhost:7000"
+        baseUrl:"https://jobboxfinal.vercel.app/"
     }),
-    tagTypes:['jobs'],
+    tagTypes:['jobs','job'],
     endpoints:(builder) =>({})
 })
 

@@ -1,13 +1,23 @@
-import React from "react";
+import React, { useState } from "react";
 
 import meeting from "../assets/meeting.jpg";
 import { BsArrowRightShort, BsArrowReturnRight } from "react-icons/bs";
-import { useParams } from "react-router-dom";
-import { useGetJobsByIdQuery } from "../app/features/apis/jobApi";
+import { useNavigate, useParams } from "react-router-dom";
+import { useApplyMutation, useGetJobsByIdQuery, useQuestionMutation, useReplyMutation } from "../app/features/apis/jobApi";
 import Loading from "../components/reusable/Loading";
+import { useSelector } from "react-redux";
+import { toast } from "react-hot-toast";
+import { useForm } from "react-hook-form";
 const JobDetails = () => {
+  const [reply, setReply] = useState('');
+  const {user} = useSelector((state) => state.authReducer)
+  const navigate = useNavigate()
+  const {register, handleSubmit, reset} = useForm()
   const {id} = useParams()
-  const { data, isLoading} = useGetJobsByIdQuery(id) 
+  const [apply] = useApplyMutation()
+  const { data, isLoading} = useGetJobsByIdQuery(id,{pollingInterval:5000}) 
+  const [sendQuestion] = useQuestionMutation()
+  const [sendReply] = useReplyMutation()
   const {
     companyName,
     position,
@@ -20,12 +30,41 @@ const JobDetails = () => {
     requirements,
     responsibilities,
     overview,
-    queries
+    question,
+    _id
   } = data?.data || {};
 
   const handleApply = ()=>{
-    const data = {}
-    console.log(data);
+    if(user.role === 'employee'){
+      return toast.error('you need a candidate account to apply',{id:'applyError'})
+    }
+    if(user.role === ''){
+      return navigate('/register')
+    }
+    const data = {
+      userId:user._id,
+      email:user.email,
+      jobId:_id
+    }
+    apply(data);
+  }
+
+  const handleQuestion = ({question})=>{
+    sendQuestion({
+      userId:user._id,
+      email:user.email,
+      jobId:_id,
+      question
+    });
+    reset()
+  }
+  const handleReplay = (id)=>{
+    const data = {
+      reply,
+      userId:id
+    }
+  // console.log(data)
+    sendReply(data)
   }
 
   if(isLoading){
@@ -89,8 +128,8 @@ const JobDetails = () => {
               General Q&A
             </h1>
             <div className='text-primary my-2'>
-              {queries?.map(({ question, email, reply, id }) => (
-                <div key={id}>
+              {question?.map(({ question, email, reply,_id},_) => (
+                <div key={_}>
                   <small>{email}</small>
                   <p className='text-lg font-medium'>{question}</p>
                   {reply?.map((item,_) => (
@@ -99,32 +138,36 @@ const JobDetails = () => {
                     </p>
                   ))}
 
-                  <div className='flex gap-3 my-5'>
-                    <input placeholder='Reply' type='text' className='w-full' />
+                  {user.role === "employee" && <div className='flex gap-3 my-5'>
+                    <input placeholder='Reply' type='text' className='w-full' onBlur={(e)=> setReply(e.target.value)} />
                     <button
                       className='shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white'
                       type='button'
+                      onClick={()=> handleReplay(_id)}
                     >
                       <BsArrowRightShort size={30} />
                     </button>
-                  </div>
+                  </div>}
                 </div>
               ))}
             </div>
 
+            { user.role === "candidate" && <form onSubmit={handleSubmit(handleQuestion)}>
             <div className='flex gap-3 my-5'>
               <input
+              {...register('question')}
                 placeholder='Ask a question...'
                 type='text'
                 className='w-full'
               />
               <button
                 className='shrink-0 h-14 w-14 bg-primary/10 border border-primary hover:bg-primary rounded-full transition-all  grid place-items-center text-primary hover:text-white'
-                type='button'
+                type='submit'
               >
                 <BsArrowRightShort size={30} />
               </button>
             </div>
+            </form>}
           </div>
         </div>
       </div>
